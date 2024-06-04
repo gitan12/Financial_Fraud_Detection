@@ -1,6 +1,5 @@
-Here's a structured summary of the PaySim data exploration and model evaluation process in Python:
 
-### PaySim Dataset Overview
+# PaySim Dataset Overview
 The PaySim simulator creates synthetic datasets to mimic real-world mobile money transactions, facilitating fraud detection research without compromising sensitive information. The dataset includes transaction types like CASH-IN, CASH-OUT, DEBIT, PAYMENT, and TRANSFER, with indicators for fraudulent activity and flagged frauds.
 
 ### Libraries and Data Loading
