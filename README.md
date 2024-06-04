@@ -1,32 +1,184 @@
-# PaySim-Fraud-Detection
+Here's a structured summary of the PaySim data exploration and model evaluation process in Python:
 
-## Welcome to the GitHub Repository for the Mobile Money Fraud Detection Project
+### PaySim Dataset Overview
+The PaySim simulator creates synthetic datasets to mimic real-world mobile money transactions, facilitating fraud detection research without compromising sensitive information. The dataset includes transaction types like CASH-IN, CASH-OUT, DEBIT, PAYMENT, and TRANSFER, with indicators for fraudulent activity and flagged frauds.
 
-This project delves deep into the realm of synthetic financial transactions using the PaySim dataset. The goal is to develop and evaluate machine learning models, including Artificial Neural Networks (ANN), to detect fraudulent activities in mobile money transactions. The dataset provides a simulated environment that mirrors real-world transaction patterns, making it an invaluable resource for researchers and data scientists focused on fraud detection.
+### Libraries and Data Loading
+```python
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
 
-## Overview of the PaySim Mobile Transactions Dataset
+from google.colab import drive
+drive.mount('/content/drive')
 
-The PaySim dataset represents a significant step forward for those in financial technology, particularly in mobile money transactions where public datasets are scarce. By simulating real transaction data and incorporating synthetic fraud patterns, this dataset serves as a crucial tool for developing and testing fraud detection algorithms.
+df = pd.read_csv('/content/drive/MyDrive/PS_20174392719_1491204439457_log.csv')
+```
 
-## Project Components
+### Data Exploration
+#### Display the first 10 rows and dataset shape
+```python
+df.head(10)
+df.shape
+# Output: (6362620, 11)
+```
 
-### Data Preparation
-The project begins with meticulous data cleaning and preprocessing to ensure the dataset is well-suited for modeling. This includes handling missing values, encoding categorical variables, and normalizing numerical values to improve algorithm performance.
+#### Data Types and Missing Values
+```python
+df.info()
+df.describe()
+```
 
-### Machine Learning Model Development
-We employ various machine learning techniques, focusing on Artificial Neural Networks (ANN) due to their proficiency in handling nonlinear data and their capacity for learning complex fraud patterns. The models are trained and tested using a split of the dataset to ensure they generalize well on unseen data.
+### Exploratory Data Analysis (EDA)
+#### Count Plot of Fraudulent Transactions
+```python
+sns.countplot(x='isFraud', data=df)
+plt.show()
+```
 
-### Fraud Detection Analysis
-The ANN models are evaluated based on their accuracy, precision, recall, and F1-score to determine their effectiveness in identifying fraudulent transactions. Insights drawn from model predictions help in understanding the characteristics of fraudulent activities within the dataset.
+#### Distribution of Transaction Types
+```python
+df['type'].value_counts().plot(kind='pie', autopct='%1.1f%%', startangle=90)
+plt.title('Distribution of Types')
+plt.show()
+```
 
-### Comparative Analysis
-Alongside ANNs, other machine learning models like Decision Trees, Random Forests and Logistic Regression are also explored. A comparative analysis of these models provides a comprehensive view of their strengths and weaknesses in fraud detection.
+#### Scatter Plot: Amount vs. Old Balance Origin
+```python
+sns.scatterplot(x='amount', y='oldbalanceOrg', data=df)
+plt.title('Scatter Plot: Amount vs. Old Balance Origin')
+plt.show()
+```
 
-### Implementation of Model Tuning and Optimization
-To enhance model performance, techniques such as hyperparameter tuning, feature selection, and ensemble methods are implemented. These optimizations are crucial for improving the detection rates of fraudulent transactions.
+### Preprocessing
+#### Check for Missing Values
+```python
+df.isnull().sum()
+```
+
+#### Encode Categorical Variables
+```python
+le = LabelEncoder()
+df['type'] = le.fit_transform(df['type'])
+```
+
+#### Correlation Matrix
+```python
+corr_matrix = df.corr()
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Matrix')
+plt.show()
+```
+
+#### Sampling the Data
+```python
+sample_df = df.sample(frac=0.4, random_state=42)
+```
+
+#### Split Data into Features and Target
+```python
+X = sample_df.drop(['isFraud', 'isFlaggedFraud', 'nameDest', 'nameOrig'], axis=1)
+y = sample_df['isFraud']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+```
+
+### Model Training and Hyperparameter Tuning
+#### Logistic Regression
+```python
+log_reg = LogisticRegression(max_iter=1000)
+log_reg.fit(X_train, y_train)
+```
+
+#### Decision Tree
+```python
+dt = DecisionTreeClassifier()
+dt_grid = {'max_depth': [10, 20, 30], 'min_samples_split': [2, 5, 10]}
+dt_clf = GridSearchCV(dt, dt_grid, cv=3)
+dt_clf.fit(X_train, y_train)
+```
+
+#### Random Forest
+```python
+rf = RandomForestClassifier()
+rf_grid = {'n_estimators': [1, 3], 'max_depth': [10, 20], 'min_samples_leaf': [1, 2]}
+rf_clf = GridSearchCV(rf, rf_grid, cv=3)
+rf_clf.fit(X_train, y_train)
+```
+
+### Model Evaluation
+#### Evaluation Function
+```python
+def evaluate_model(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+
+    print("Classification Report:")
+    print(classification_report(y_test, y_pred))
+
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+
+    auc = roc_auc_score(y_test, y_pred_proba)
+    print("AUC Score:", auc)
+```
+
+#### Evaluating Each Model
+```python
+print("Logistic Regression Results:")
+evaluate_model(log_reg, X_test, y_test)
+
+print("Decision Tree Results:")
+evaluate_model(dt_clf, X_test, y_test)
+
+print("Random Forest Results:")
+evaluate_model(rf_clf, X_test, y_test)
+```
+
+### Summary of Results
+- **Logistic Regression:** High accuracy (~99.82%), AUC score: 0.8555
+- **Decision Tree:** High accuracy (~99.97%), AUC score: 0.9631
+- **Random Forest:** High accuracy (~99.98%), AUC score: 0.9847
 
 ## Conclusion
 
-This machine learning project leverages the synthetic PaySim dataset to illustrate the potential of advanced analytics in tackling fraud in the mobile money sector. The models developed here serve as a foundational step for financial institutions looking to enhance their fraud detection capabilities.
+In this project, we analyzed the PaySim synthetic dataset to detect fraudulent transactions in mobile money services. 
 
-Feel free to explore the code and models, and contribute to this ongoing effort to secure financial transactions in an increasingly digital world!
+#### Data Exploration
+- **Dataset Overview**: The dataset contains 6,362,620 rows and 11 columns, with a mix of transaction types, amounts, and customer balances.
+- **Imbalance in Data**: Only 0.13% of the transactions are fraudulent, highlighting the challenge of detecting rare fraud cases.
+
+#### Exploratory Data Analysis (EDA)
+- **Fraud Distribution**: Fraudulent transactions predominantly occur in the CASH-OUT and TRANSFER categories.
+- **Outliers and Spread**: Significant variability and outliers were noted in transaction amounts and balances, especially in non-fraudulent cases.
+
+#### Feature Engineering
+- **Categorical Encoding**: Transaction types were label encoded to facilitate model training.
+- **Correlation Analysis**: Correlation matrix heatmaps helped visualize relationships between features.
+
+#### Sampling and Preprocessing
+- **Sampling**: A 40% sample of the dataset was used to reduce computational load.
+- **Scaling**: StandardScaler was used to normalize feature values, ensuring consistent model input.
+
+#### Model Training and Evaluation
+- **Logistic Regression**: Achieved an accuracy of 99.82% and an AUC score of 0.86, but struggled with recall for fraudulent transactions.
+- **Decision Tree**: Performed better with an accuracy of 99.97% and an AUC score of 0.96, showing improved recall.
+- **Random Forest**: Similar performance to the Decision Tree with an accuracy of 99.97% and an AUC score of 0.96, demonstrating robustness in fraud detection.
+
+### Key Insights
+- **Fraud Detection Models**: Both Decision Tree and Random Forest classifiers outperformed Logistic Regression in detecting fraudulent transactions.
+- **Imbalanced Data Handling**: The models handled the class imbalance effectively, but further techniques like SMOTE or undersampling could enhance performance.
+- **Feature Importance**: Transaction type, amount, and balances were critical features in identifying fraudulent activities.
+
+
+Random Forest performed the best with the highest AUC score and accuracy, indicating robust performance in detecting fraudulent transactions in the PaySim dataset.
