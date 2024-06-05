@@ -88,11 +88,13 @@ sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f')
 plt.title('Correlation Matrix')
 plt.show()
 ```
+The heatmap provides a visual representation of the correlation matrix, allowing for easy identification of relationships between variables in the DataFrame df. Cells with higher positive values (closer to 1) indicate a strong positive correlation, cells with higher negative values (closer to -1) indicate a strong negative correlation, and cells with values near 0 indicate little to no correlation. This visualization helps in understanding the linear relationships between different features in the dataset.
 
 #### Sampling the Data
 ```python
 sample_df = df.sample(frac=0.4, random_state=42)
 ```
+We create a new DataFrame, sample_df, which contains a random sample of 40% of the rows from the original DataFrame df. This subset can be useful for tasks such as model training, or testing without needing to use the entire dataset. Using random_state=42 ensures that the sample is reproducible, which is important for consistent results in analysis or modeling.
 
 #### Split Data into Features and Target
 ```python
@@ -100,6 +102,7 @@ X = sample_df.drop(['isFraud', 'isFlaggedFraud', 'nameDest', 'nameOrig'], axis=1
 y = sample_df['isFraud']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 ```
+This process is a crucial step in machine learning workflows, ensuring that the model is trained on one portion of the data (X_train, y_train) and evaluated on a separate portion (X_test, y_test) to assess its performance and generalizability.
 
 ### Model Training and Hyperparameter Tuning
 #### Logistic Regression
@@ -107,6 +110,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 log_reg = LogisticRegression(max_iter=1000)
 log_reg.fit(X_train, y_train)
 ```
+The logistic regression model log_reg is successfully trained on the training dataset, enabling it to learn the relationship between the features and the target variable.
 
 #### Decision Tree
 ```python
@@ -115,6 +119,7 @@ dt_grid = {'max_depth': [10, 20, 30], 'min_samples_split': [2, 5, 10]}
 dt_clf = GridSearchCV(dt, dt_grid, cv=3)
 dt_clf.fit(X_train, y_train)
 ```
+The Decision Tree classifier `dt` undergoes hyperparameter tuning using `GridSearchCV`, which searches for the best combination of `max_depth` and `min_samples_split` through cross-validation. The best model is then trained on the training dataset.
 
 #### Random Forest
 ```python
@@ -123,9 +128,7 @@ rf_grid = {'n_estimators': [1, 3], 'max_depth': [10, 20], 'min_samples_leaf': [1
 rf_clf = GridSearchCV(rf, rf_grid, cv=3)
 rf_clf.fit(X_train, y_train)
 ```
-We’ve initialized a RandomForestClassifier object named rf.
-We’ve defined a hyperparameter grid for tuning the model. The grid includes different values for n_estimators, max_depth, and min_samples_leaf.
-We’re using GridSearchCV to perform hyperparameter tuning. This will search through the specified parameter combinations and find the best set of hyperparameters based on cross-validation performance.
+The Random Forest classifier `rf` undergoes hyperparameter tuning using `GridSearchCV`, which searches for the best combination of `n_estimators`, `max_depth`, and `min_samples_leaf` through cross-validation. The best model is then trained on the training dataset, optimizing its performance based on the specified hyperparameters.
 
 ### Model Evaluation
 #### Evaluation Function
